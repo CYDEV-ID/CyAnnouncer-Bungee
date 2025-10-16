@@ -9,6 +9,7 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,13 +36,25 @@ public class BroadcastCommand extends Command implements TabExecutor {
 
         if (targets.equalsIgnoreCase("all")) {
             plugin.getProxy().broadcast(componentMessage);
+            sender.sendMessage(new TextComponent(ChatColor.GREEN + "Broadcast sent to all servers."));
         } else {
             List<String> targetServers = Arrays.asList(targets.split(","));
+            Collection<String> allServerNames = plugin.getServers().keySet();
+
+            for (String targetServer : targetServers) {
+                if (!allServerNames.contains(targetServer)) {
+                    sender.sendMessage(new TextComponent(ChatColor.RED + "Error: Server '" + targetServer + "' not found."));
+                    sender.sendMessage(new TextComponent(ChatColor.GRAY + "Available servers: " + String.join(", ", allServerNames)));
+                    return;
+                }
+            }
+
             for (ProxiedPlayer player : plugin.getProxy().getPlayers()) {
                 if (player.getServer() != null && targetServers.contains(player.getServer().getInfo().getName())) {
                     player.sendMessage(componentMessage);
                 }
             }
+            sender.sendMessage(new TextComponent(ChatColor.GREEN + "Broadcast sent to servers: " + String.join(", ", targetServers)));
         }
     }
 
